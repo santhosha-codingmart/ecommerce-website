@@ -1,3 +1,4 @@
+# Load variables from .env automatically (docker compose does this by default)
 
 services:
 
@@ -6,16 +7,18 @@ services:
     image: mysql:8.0
     container_name: ecommerce-db
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: Root@123
-      MYSQL_DATABASE: ecommerce_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./ecommerce_backup.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pRoot@123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -54,11 +57,14 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       # Override application.properties to use Docker service names
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/ecommerce_db?createDatabaseIfNotExist=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: Root@123
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
     healthcheck:

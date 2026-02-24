@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -17,11 +19,17 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // A secret key for signing the JWT.
-    // In a real app, this should be a long random string stored in
-    // application.properties!
-    private final String SECRET_KEY = "mySecretKeyForEcommerceAppMustBeVeryLongToBeSafe";
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    // Secret is injected from application.properties → set via JWT_SECRET env var.
+    // It is never hardcoded here, keeping the source code safe to commit.
+    @Value("${jwt.secret}")
+    private String secretValue;
+
+    private Key key;
+
+    @PostConstruct
+    private void initKey() {
+        this.key = Keys.hmacShaKeyFor(secretValue.getBytes());
+    }
 
     // Token validity period (e.g., 24 hours in milliseconds)
     private final long JWT_EXPIRATION = 1000 * 60 * 60 * 24;

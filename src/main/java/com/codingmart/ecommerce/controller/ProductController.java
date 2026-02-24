@@ -29,7 +29,7 @@ public class ProductController {
     @GetMapping
     public Page<Product> getAllProducts(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
+            @RequestParam(name = "size", defaultValue = "8") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return productService.getAllProducts(pageable);
     }
